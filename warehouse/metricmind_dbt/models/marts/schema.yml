@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: fct_sales
+    columns:
+      - name: transaction_id
+        tests:
+          - unique
+          - not_null
+      - name: revenue
+        tests:
+          - not_null
+      - name: margin_pct
+        tests:
+          - not_null
