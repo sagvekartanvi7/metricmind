@@ -1,0 +1,3 @@
+SELECT
+    DATEADD(day, seq4(), '2020-01-01'::date) AS date_day
+FROM TABLE(GENERATOR(ROWCOUNT => 3653))

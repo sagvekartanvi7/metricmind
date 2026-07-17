@@ -1,0 +1,24 @@
+metrics:
+  - name: revenue
+    description: "Total revenue from all sales"
+    type: simple
+    label: "Revenue"
+    type_params:
+      measure: revenue
+
+  - name: cost
+    description: "Total cost of goods sold"
+    type: simple
+    label: "Cost"
+    type_params:
+      measure: cost
+
+  - name: margin
+    description: "Profit margin as a percentage of revenue"
+    type: derived
+    label: "Margin %"
+    type_params:
+      expr: (revenue - cost) / nullif(revenue, 0)
+      metrics:
+        - name: revenue
+        - name: cost

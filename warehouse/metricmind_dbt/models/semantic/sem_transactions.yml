@@ -1,0 +1,30 @@
+semantic_models:
+  - name: sem_transactions
+    description: "Semantic model for sales transactions"
+    model: ref('fct_sales')
+
+    defaults:
+      agg_time_dimension: transaction_date
+
+    entities:
+      - name: transaction
+        type: primary
+        expr: transaction_id
+
+    dimensions:
+      - name: transaction_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: region
+        type: categorical
+      - name: product
+        type: categorical
+
+    measures:
+      - name: revenue
+        agg: sum
+        expr: revenue
+      - name: cost
+        agg: sum
+        expr: cost
