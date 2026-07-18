@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text_answer: str
+    api_call_used: str
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -31,7 +32,13 @@ def chat(request: ChatRequest):
     # Route "why" questions to deeper investigation
     if "why" in question_lower:
         answer = investigate_margin_drop()
-        return ChatResponse(text_answer=answer)
+        api_call = (
+            "mf query --metrics margin --group-by metric_time__quarter\n"
+            "  (then, for the worst quarter found)\n"
+            "mf query --metrics cost --group-by transaction__product "
+            "--start-time <quarter_start> --end-time <quarter_end>"
+        )
+        return ChatResponse(text_answer=answer, api_call_used=api_call)
 
     # Otherwise, do a simple lookup based on keywords
     metric = "revenue"
@@ -47,6 +54,7 @@ def chat(request: ChatRequest):
         group_by = "metric_time__quarter"
 
     raw_data = query_semantic_layer(metric, group_by)
+    api_call = f"mf query --metrics {metric} --group-by {group_by}"
 
     prompt = f"""
 You are MetricMind, a business analytics assistant.
@@ -58,7 +66,7 @@ Here is the real data from the semantic layer:
 Answer the user's question in 1-3 clear sentences, citing the specific numbers.
 """
     response = llm.invoke([HumanMessage(content=prompt)])
-    return ChatResponse(text_answer=response.content)
+    return ChatResponse(text_answer=response.content, api_call_used=api_call)
 
 
 @app.get("/")

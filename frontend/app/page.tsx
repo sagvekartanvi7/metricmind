@@ -5,12 +5,14 @@ import { useState } from "react";
 type Message = {
   role: "user" | "assistant";
   content: string;
+  apiCall?: string;
 };
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -31,6 +33,7 @@ export default function ChatPage() {
       const assistantMessage: Message = {
         role: "assistant",
         content: data.text_answer,
+        apiCall: data.api_call_used,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -54,13 +57,35 @@ export default function ChatPage() {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`p-3 rounded-lg max-w-[80%] ${
-              msg.role === "user"
-                ? "bg-blue-500 text-white ml-auto"
-                : "bg-gray-100 text-gray-900"
-            }`}
+            className={`max-w-[80%] ${msg.role === "user" ? "ml-auto" : ""}`}
           >
-            {msg.content}
+            <div
+              className={`p-3 rounded-lg ${
+                msg.role === "user"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-900"
+              }`}
+            >
+              {msg.content}
+            </div>
+
+            {msg.role === "assistant" && msg.apiCall && (
+              <div className="mt-1">
+                <button
+                  onClick={() =>
+                    setExpandedIndex(expandedIndex === i ? null : i)
+                  }
+                  className="text-xs text-blue-600 underline"
+                >
+                  {expandedIndex === i ? "Hide API Call" : "View API Call"}
+                </button>
+                {expandedIndex === i && (
+                  <pre className="mt-1 p-2 bg-gray-900 text-green-400 text-xs rounded-lg overflow-x-auto whitespace-pre-wrap">
+                    {msg.apiCall}
+                  </pre>
+                )}
+              </div>
+            )}
           </div>
         ))}
         {loading && (
