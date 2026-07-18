@@ -19,14 +19,14 @@ def query_semantic_layer_tool(metric: str, group_by: str) -> str:
 
 
 # Connect to our local Llama 3.1 model
-llm = ChatOllama(model="llama3.1", temperature=0)
+llm = ChatOllama(model="llama3.2", temperature=0)
 
 agent = create_agent(
     llm,
     tools=[query_semantic_layer_tool],
     system_prompt=(
         "You are MetricMind, a business analytics assistant. "
-        "You must ONLY answer using the query_semantic_layer_tool tool — "
+        "You must ONLY answer using the query_semantic_layer_tool tool — "  
         "never make up numbers yourself. "
         "Valid metrics: revenue, cost, margin. "
         "Valid group_by values: transaction__region, transaction__product, "
