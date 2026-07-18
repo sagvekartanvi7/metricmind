@@ -35,6 +35,29 @@ for i in range(NUM_ROWS):
         "cost": cost
     })
 
+# Inject an anomaly: Europe's Q2 2025 costs spike (simulating a shipping crisis)
+anomaly_rows = []
+for i in range(300):
+    transaction_id = NUM_ROWS + i + 1
+    transaction_date = datetime(2025, 5, random.randint(1, 28))
+    quantity = random.randint(1, 10)
+    unit_price = round(random.uniform(20, 500), 2)
+    revenue = round(quantity * unit_price, 2)
+    cost = round(revenue * random.uniform(0.75, 0.95), 2)  # much higher cost ratio!
+
+    anomaly_rows.append({
+        "transaction_id": transaction_id,
+        "transaction_date": transaction_date.strftime("%Y-%m-%d"),
+        "region": "Europe",
+        "product": "Monitor",
+        "quantity": quantity,
+        "unit_price": unit_price,
+        "revenue": revenue,
+        "cost": cost
+    })
+
+rows.extend(anomaly_rows)
+
 # Create DataFrame and save to CSV
 df = pd.DataFrame(rows)
 df.to_csv("sales_data.csv", index=False)
