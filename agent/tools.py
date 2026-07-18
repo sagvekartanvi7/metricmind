@@ -1,8 +1,34 @@
 import subprocess
 import os
+import time
 
 MF_PATH = r"D:\AXLERO\metricmind\warehouse\venv\Scripts\mf.exe"
 DBT_PROJECT_PATH = r"D:\AXLERO\metricmind\warehouse\metricmind_dbt"
+
+# --- Cost Governance ---
+_query_count = {"count": 0}
+MAX_QUERIES_PER_SESSION = 20
+
+LOG_FILE = os.path.join(os.path.dirname(__file__), "query_log.txt")
+
+
+def _log_query(metric: str, dimension: str, extra: str = ""):
+    """Logs every query with a timestamp for auditing purposes."""
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        f.write(f"[{timestamp}] metric={metric} dimension={dimension} {extra}\n")
+
+
+def _check_query_limit():
+    """Simple safety check: stop if too many queries happen in one session."""
+    _query_count["count"] += 1
+    if _query_count["count"] > MAX_QUERIES_PER_SESSION:
+        raise RuntimeError(
+            f"Query limit reached ({MAX_QUERIES_PER_SESSION} queries this session). "
+            "This protects against runaway costs. Restart the server to reset."
+        )
+# --- End Cost Governance ---
+
 
 def query_semantic_layer(metric: str, group_by: str = "metric_time__quarter") -> str:
     """
@@ -11,6 +37,9 @@ def query_semantic_layer(metric: str, group_by: str = "metric_time__quarter") ->
     
     Example: query_semantic_layer("revenue", "transaction__region")
     """
+    _check_query_limit()
+    _log_query(metric, group_by, extra="[top-level]")
+
     command = [
         MF_PATH, "query",
         "--metrics", metric,
@@ -47,6 +76,9 @@ def query_breakdown(metric: str, dimension: str, region: str = None,
     Example: query_breakdown("cost", "transaction__product", region="Europe",
                               start_time="2025-04-01", end_time="2025-06-30")
     """
+    _check_query_limit()
+    _log_query(metric, dimension, extra="[breakdown]")
+
     command = [
         MF_PATH, "query",
         "--metrics", metric,
